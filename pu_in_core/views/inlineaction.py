@@ -1,4 +1,5 @@
 import logging
+from django.views.generic.detail import SingleObjectMixin
 from django.template.loader import render_to_string
 from jsonbase import JSONResponseMixin
 
@@ -44,3 +45,31 @@ class InlineActionMixin(JSONResponseMixin):
             context['errors'] = "POST not handled"
 
         return self.render_to_response(context);
+
+
+class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
+
+    """ Action on object """
+
+    def get_context_data(self, **kwargs):
+
+        """ Base implementation that just returns the view's kwargs """
+
+        context = super(InlineObjectActionMixin, 
+                        self).get_context_data(**kwargs)
+
+        context['object'] = self.object
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        return super(InlineObjectActionMixin, self).get(request, *args, 
+                                                        **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        return super(InlineObjectActionMixin, self).post(request, *args, 
+                                                        **kwargs)

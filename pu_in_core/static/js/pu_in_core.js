@@ -29,30 +29,38 @@ $(document).ready(function() {
     $(document).on("click", ".action-inline", function(e) {
         
         var link = $(e.target);
+
+        if (!link.hasClass("action-inline")) {
+          link = link.parents(".action-inline");
+        }
+
         var tgt = link.attr("target") || "";
 
         if (tgt.startsWith("#")) {
           tgt = $(tgt);
-        }
-        else if (tgt) {
+        } else if (tgt) {
           tgt = eval("link." + tgt);
         }
 
-        $.post(link.attr("href"),
-               link.attr("pu:action-data"),
-               function(data) {
-                 if (data['status'] != 0) {
-                   pg.showMessage(data['errors'], "error");                   
-                 } else {
-                   if (tgt) {
-                     tgt.html(data['html']);
-                   } else {
-                     link.replaceWith(data['html']);
-                   }
-                 }
-               },
-               "json"
-               );
+        $.get(link.attr("href"),
+              link.attr("pu:action-data") || "",
+              function(data) {
+                if (data['status'] != 0) {
+                  pg.showMessage(data['errors'], "error");                   
+                } else {
+                  if (tgt) {
+                    if (link.attr("pu:target-behavior") == "replace") {
+                      tgt.replaceWith(data['html']);
+                    } else {
+                      tgt.html(data['html']);
+                    }
+                  } else {
+                    link.replaceWith(data['html']);
+                  }
+                }
+              },
+              "json"
+              );
         
         e.preventDefault();
       });
