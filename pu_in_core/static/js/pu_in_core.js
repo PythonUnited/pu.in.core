@@ -35,6 +35,7 @@ $(document).ready(function() {
         }
 
         var tgt = link.attr("target") || "";
+        var callback = link.attr("pu:callback");
 
         if (tgt.startsWith("#")) {
           tgt = $(tgt);
@@ -42,25 +43,30 @@ $(document).ready(function() {
           tgt = eval("link." + tgt);
         }
 
-        $.get(link.attr("href"),
-              link.attr("pu:action-data") || "",
-              function(data) {
-                if (data['status'] != 0) {
-                  pg.showMessage(data['errors'], "error");                   
-                } else {
-                  if (tgt) {
-                    if (link.attr("pu:target-behavior") == "replace") {
-                      tgt.replaceWith(data['html']);
-                    } else {
-                      tgt.html(data['html']);
-                    }
-                  } else {
-                    link.replaceWith(data['html']);
-                  }
-                }
-              },
-              "json"
-              );
+        $.ajax(link.attr("href"),
+               {type: link.attr("pu:action-method") || "GET",
+                data: link.attr("pu:action-data") || "",
+                success: function(data) {
+                   if (data['status'] != 0) {
+                     pg.showMessage(data['errors'], "error");                   
+                   } else {
+                     if (tgt) {
+                       if (link.attr("pu:target-behavior") == "replace") {
+                         tgt.replaceWith(data['html']);
+                       } else {
+                         tgt.html(data['html']);
+                       }
+                     } else {
+                       link.replaceWith(data['html']);
+                     }
+                   }
+                   
+                   if (callback) {
+                     var cb = eval(callback);
+                     cb();
+                   }
+                 }
+               });
         
         e.preventDefault();
       });
