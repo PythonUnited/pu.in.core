@@ -16,7 +16,7 @@
  * Resulting html will be inserted in the target attribute of the form,
  * if that points to a valid id of an element within the current page.
  * Insert or replace depends on the pu:target-behavior attribute. Valid values 
- * are 'insert', 'replace'. The default is to insert.
+ * are 'insert', 'replace' and 'append'. The default is to insert.
  *
  * action-inline
  * -------------
@@ -28,7 +28,7 @@
  * data with the request.
  *
  * For both handlers: if pu:callback is provided as attribute, this JS
- * functoin will be called on success.
+ * function will be called on success.
  */
 
 // pu_in namespace
@@ -89,6 +89,8 @@ $(document).ready(function() {
                        if (tgt) {
                          if (form.attr("pu:target-behavior") == "replace") {
                            tgt.replaceWith(data['html']);
+                         } else if (form.attr("pu:target-behavior") == "append") {
+                           tgt.append(data['html']);
                          } else {
                            tgt.html(data['html']);
                          }
@@ -100,11 +102,18 @@ $(document).ready(function() {
                      if (tgt) {
                        if (form.attr("pu:target-behavior") == "replace") {
                          tgt.replaceWith(data);
+                       } else if (form.attr("pu:target-behavior") == "append") {
+                         tgt.append(data);
                        } else {
                          tgt.html(data);
                        }
                      }
                    }
+
+                   if (callback) {
+                     var cb = eval(callback);
+                     cb();
+                   }                 
                  }
                });
         
