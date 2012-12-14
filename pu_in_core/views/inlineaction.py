@@ -2,6 +2,7 @@ import logging
 from django.views.generic.detail import SingleObjectMixin
 from django.template.loader import render_to_string
 from jsonbase import JSONResponseMixin
+from pgcontent.utils import get_object_by_ctype_id
 
 
 log = logging.getLogger("pu.in.core")
@@ -26,11 +27,11 @@ class InlineActionMixin(JSONResponseMixin):
 
         context = self.get_context_data(**kwargs)
 
-        if self.handle_on_post:
+        if self.handle_on_get:
             context['status'], context['errors'] = self.handle_request()
         else:
-            context['status'] = -1
-            context['errors'] = "GET not handled"
+            context['status'] = 0
+            context['errors'] = ""
 
         return self.render_to_response(context);
 
@@ -41,8 +42,8 @@ class InlineActionMixin(JSONResponseMixin):
         if self.handle_on_post:
             context['status'], context['errors'] = self.handle_request()
         else:
-            context['status'] = -1
-            context['errors'] = "POST not handled"
+            context['status'] = 0
+            context['errors'] = ""
 
         return self.render_to_response(context);
 
@@ -73,3 +74,11 @@ class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
         
         return super(InlineObjectActionMixin, self).post(request, *args, 
                                                         **kwargs)
+
+
+class InlineCTObjectActionMixin(InlineObjectActionMixin):
+
+    def get_object(self):
+
+        return get_object_by_ctype_id(self.kwargs['ctype'], self.kwargs['id'])
+    

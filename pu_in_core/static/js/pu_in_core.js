@@ -2,10 +2,10 @@
  * pu.in core JS
  * =============
  *
- * As I said: core stuff. This JS lib provides
- * bindings for action-inline links, and submit-inline forms. In both
- * cases the action (action attr for forms, href for links) is handled
- * by Ajax, and the result is inserted in the current page.
+ * As I said: core stuff. This JS lib provides bindings for
+ * action-inline links, and submit-inline forms. In both cases the
+ * action (action attr for forms, href for links) is handled by Ajax,
+ * and the result is inserted in the current page.
  *
  * submit-inline 
  * ------------- 
@@ -58,7 +58,88 @@ pu_in.core.detectContentType = function(xhr) {
   var ct = xhr.getResponseHeader("content-type") || "unknown";
 
   return ct;
-}
+};
+
+
+/**
+ * Determine the target for the given action. If it starts with '#',
+ * it is supposed to be a local element, otherwise it it is not empty,
+ * it is assumed to be a jquery selector that is evaluated on the
+ * current element.
+ * @param elt Element that triggered the action.
+ */
+pu_in.core.determineTarget = function(elt) {
+
+  var tgt = elt.attr("target") || "";
+
+  if (tgt.startsWith("#")) {
+    tgt = $(tgt);
+  } else if (tgt) {
+    tgt = eval("elt." + tgt);
+  }
+
+  return tgt;
+};
+
+
+/**
+ * Handle callback, if that attribute is set.
+ * @param elt Element that triggered the action.
+ */
+pu_in.core.handleCallback = function(elt) {
+
+  var callback = elt.attr("pu:callback") || "";
+
+  if (callback) {
+    try {
+      var callback = eval(callback);
+      callback();
+    } catch (e) {
+      // handle errors please!
+    }
+  }                 
+};
+
+
+/**
+ * Handle action result.
+ * @param elt Element that triggered the action
+ * @param data Result data
+ * @param status Response status
+ * @param xhr Result XHR
+ */
+pu_in.core.handleResult = function(elt, tgt, data, status, xhr) {
+
+  var contentType = pu_in.core.detectContentType(xhr);
+
+  if (contentType.indexOf("json") > -1) {
+    if (data['status'] != 0) {
+      pg.showMessage(data['errors'], "error");
+    } else {
+      if (tgt) {
+        if (elt.attr("pu:target-behavior") == "replace") {
+          tgt.replaceWith(data['html']);
+        } else if (elt.attr("pu:target-behavior") == "append") {
+          tgt.append(data['html']);
+        } else {
+          tgt.html(data['html']);
+        }
+      }
+    }                   
+  } else {
+    if (tgt) {
+      if (elt.attr("pu:target-behavior") == "replace") {
+        tgt.replaceWith(data);
+      } else if (elt.attr("pu:target-behavior") == "append") {
+        tgt.append(data);
+      } else {
+        tgt.html(data);
+      }
+    }
+  }
+  
+  pu_in.core.handleCallback(elt);
+};
 
 
 $(document).ready(function() {
@@ -66,54 +147,24 @@ $(document).ready(function() {
     $(document).on("submit", ".submit-inline", function(e) {
 
         var form = $(e.target);
-        var tgt = form.attr("target") || "";
-        var callback = form.attr("pu:callback");
-
-        if (tgt.startsWith("#")) {
-          tgt = $(tgt);
-        } else if (tgt) {
-          tgt = eval("form." + tgt);
+        var tgt = pu_in.core.determineTarget(form);
+        
+        if (form.attr("pu:pre-submit")) {
+          try {
+            check = eval(form.attr("pu:pre-submit"));
+            if (!check(form)) {
+              return false;
+            }
+          } catch (e) {
+            // handle errors please!
+          }
         }
 
         $.ajax(form.attr("action"),
                {type: form.attr("method") || "POST",
                 data: form.serialize(),
                 success: function(data, status, xhr) {
-
-                   var contentType = pu_in.core.detectContentType(xhr);
-                   
-                   if (contentType.indexOf("json") > -1) {
-                     if (data['status'] != 0) {
-                       pg.showMessage(data['errors'], "error");
-                     } else {
-                       if (tgt) {
-                         if (form.attr("pu:target-behavior") == "replace") {
-                           tgt.replaceWith(data['html']);
-                         } else if (form.attr("pu:target-behavior") == "append") {
-                           tgt.append(data['html']);
-                         } else {
-                           tgt.html(data['html']);
-                         }
-                       } else {
-                         form.replaceWith(data['html']);
-                       }
-                     }                   
-                   } else {
-                     if (tgt) {
-                       if (form.attr("pu:target-behavior") == "replace") {
-                         tgt.replaceWith(data);
-                       } else if (form.attr("pu:target-behavior") == "append") {
-                         tgt.append(data);
-                       } else {
-                         tgt.html(data);
-                       }
-                     }
-                   }
-
-                   if (callback) {
-                     var cb = eval(callback);
-                     cb();
-                   }                 
+                   pu_in.core.handleResult(form, tgt, data, status, xhr);
                  }
                });
         
@@ -127,42 +178,50 @@ $(document).ready(function() {
         if (!link.hasClass("action-inline")) {
           link = link.parents(".action-inline");
         }
-
-        var tgt = link.attr("target") || "";
-        var callback = link.attr("pu:callback");
-
-        if (tgt.startsWith("#")) {
-          tgt = $(tgt);
-        } else if (tgt) {
-          tgt = eval("link." + tgt);
-        }
-
+        
+        var tgt = pu_in.core.determineTarget(link) || link;
+        
         $.ajax(link.attr("href"),
                {type: link.attr("pu:action-method") || "GET",
                 data: link.attr("pu:action-data") || "",
-                success: function(data) {
-                   if (data['status'] != 0) {
-                     pg.showMessage(data['errors'], "error");                   
-                   } else {
-                     if (tgt) {
-                       if (link.attr("pu:target-behavior") == "replace") {
-                         tgt.replaceWith(data['html']);
-                       } else {
-                         tgt.html(data['html']);
-                       }
-                     } else {
-                       link.replaceWith(data['html']);
-                     }
-                   }
-                   
-                   if (callback) {
-                     var cb = eval(callback);
-                     cb();
-                   }
+                success: function(data, status, xhr) {
+                   pu_in.core.handleResult(link, tgt, data, status, xhr);
                  }
                });
         
         e.preventDefault();
       });
 
+    $(document).on("click", ".modal-action-inline", function(e) {
+        
+        var link = $(e.target);
+
+        if (!link.hasClass("modal-action-inline")) {
+          link = link.parents(".modal-action-inline");
+        }
+      
+        $.ajax(link.attr("href"), 
+               {type: link.attr("pu:action-method") || "GET",
+                data: link.attr("pu:action-data") || "",
+                   success: function(data, status, xhr) {
+
+                     var contentType = pu_in.core.detectContentType(xhr);
+
+                     if (contentType.indexOf("json") > -1) {          
+                       $("#MyModal .modal-body").html(data['html']);
+                     } else {
+                       $("#MyModal .modal-body").html(data);
+                     }
+                     $("#MyModal").modal();
+                 }
+               });
+        e.preventDefault();
+      });
+
+
+    $(document).on("submit", "#MyModal form", function(e) {
+
+        $("#MyModal").modal('hide');
+      });
   });
+  
