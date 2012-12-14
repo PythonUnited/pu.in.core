@@ -153,10 +153,11 @@ $(document).ready(function() {
           try {
             check = eval(form.attr("pu:pre-submit"));
             if (!check(form)) {
+              pg.showMessage("Kon data niet versturen", "error");
               return false;
             }
           } catch (e) {
-            // handle errors please!
+            pg.showMessage("Kon data niet versturen: " + e, "error");
           }
         }
 
