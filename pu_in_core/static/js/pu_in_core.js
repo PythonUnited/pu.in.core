@@ -110,6 +110,8 @@ pu_in.core.handleCallback = function(elt) {
  */
 pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
+  defaults = defaults || {};
+
   var contentType = pu_in.core.detectContentType(xhr);
   var behavior = elt.attr("pu:target-behavior") || defaults.target-behavior;
   var html = data;
