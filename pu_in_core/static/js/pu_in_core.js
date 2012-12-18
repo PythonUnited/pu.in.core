@@ -116,6 +116,8 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   var behavior = elt.attr("pu:target-behavior") || defaults.target-behavior;
   var html = data;
 
+  console.log(tgt);
+
   if (contentType.indexOf("json") > -1) {
 
     html = data['html'];
@@ -124,17 +126,19 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
       pg.showMessage(data['errors'], "error");
       return;
     }
+  } else {
+    html = data;
   }
 
   if (tgt) {
     if (behavior == "replace") {
-      tgt.replaceWith(data['html']);
+      tgt.replaceWith(html);
     } else if (behavior == "append") {
-      tgt.append(data['html']);
+      tgt.append(html);
     } else if (behavior == "prepend") {
-      tgt.prepend(data['html']);
+      tgt.prepend(html);
     } else {
-      tgt.html(data['html']);
+      tgt.html(html);
     }
   }
   
