@@ -116,8 +116,6 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   var behavior = elt.attr("pu:target-behavior") || defaults.target-behavior;
   var html = data;
 
-  console.log(tgt);
-
   if (contentType.indexOf("json") > -1) {
 
     html = data['html'];
