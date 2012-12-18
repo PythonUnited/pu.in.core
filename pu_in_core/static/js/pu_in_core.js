@@ -108,33 +108,31 @@ pu_in.core.handleCallback = function(elt) {
  * @param status Response status
  * @param xhr Result XHR
  */
-pu_in.core.handleResult = function(elt, tgt, data, status, xhr) {
+pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
   var contentType = pu_in.core.detectContentType(xhr);
+  var behavior = elt.attr("pu:target-behavior") || defaults.target-behavior;
+  var html = data;
 
   if (contentType.indexOf("json") > -1) {
+
+    html = data['html'];
+
     if (data['status'] != 0) {
       pg.showMessage(data['errors'], "error");
+      return;
+    }
+  }
+
+  if (tgt) {
+    if (behavior == "replace") {
+      tgt.replaceWith(data['html']);
+    } else if (behavior == "append") {
+      tgt.append(data['html']);
+    } else if (behavior == "prepend") {
+      tgt.prepend(data['html']);
     } else {
-      if (tgt) {
-        if (elt.attr("pu:target-behavior") == "replace") {
-          tgt.replaceWith(data['html']);
-        } else if (elt.attr("pu:target-behavior") == "append") {
-          tgt.append(data['html']);
-        } else {
-          tgt.html(data['html']);
-        }
-      }
-    }                   
-  } else {
-    if (tgt) {
-      if (elt.attr("pu:target-behavior") == "replace") {
-        tgt.replaceWith(data);
-      } else if (elt.attr("pu:target-behavior") == "append") {
-        tgt.append(data);
-      } else {
-        tgt.html(data);
-      }
+      tgt.html(data['html']);
     }
   }
   
