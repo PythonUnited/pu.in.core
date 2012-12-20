@@ -25,27 +25,23 @@ class InlineActionMixin(JSONResponseMixin):
 
     def get(self, request, *args, **kwargs):
 
-        context = self.get_context_data(**kwargs)
-
         if self.handle_on_get:
-            context['status'], context['errors'] = self.handle_request()
+            kwargs['status'], kwargs['errors'] = self.handle_request()
         else:
-            context['status'] = 0
-            context['errors'] = ""
+            kwargs['status'] = 0
+            kwargs['errors'] = ""
 
-        return self.render_to_response(context);
+        return self.render_to_response(self.get_context_data(**kwargs));
 
     def post(self, request, *args, **kwargs):
 
-        context = self.get_context_data(**kwargs)
-
         if self.handle_on_post:
-            context['status'], context['errors'] = self.handle_request()
+            kwargs['status'], kwargs['errors'] = self.handle_request()
         else:
-            context['status'] = 0
-            context['errors'] = ""
+            kwargs['status'] = 0
+            kwargs['errors'] = ""
 
-        return self.render_to_response(context);
+        return self.render_to_response(self.get_context_data(**kwargs));
 
 
 class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
