@@ -15,20 +15,25 @@
  * html as 'html' key.  
  * Resulting html will be inserted in the target attribute of the form,
  * if that points to a valid id of an element within the current page.
- * Insert or replace depends on the pu:target-behavior attribute. Valid values 
- * are 'insert', 'replace' and 'append'. The default is to insert.
+ * Insert or replace depends on the pu_targetbehavior data attribute. 
+ * Valid values are 'insert', 'replace', 'prepend' and 'append'. The default 
+ * is to insert.
  *
  * action-inline
  * -------------
  * Class setting for inline actions. For result handling, see above. Specific 
  * case is where no target is given: default action is to replace the link 
- * itself. If pu:action-method is provided as attribute, the action will be 
- * requested through that method. Default is GET. If pu:action-data is set, this
+ * itself. If pu_actionmethod is provided as attribute, the action will be 
+ * requested through that method. Default is GET. If pu_actiondata is set, this
  * is regarded as a stringified number of parameter/value pairs to be sent as
  * data with the request.
  *
- * For both handlers: if pu:callback is provided as attribute, this JS
+ * For both handlers: if pu_callback is provided as data attribute, this JS
  * function will be called on success.
+ *
+ * modal-action-inline
+ * -------------------
+ * Handle action and show result in modal box.
  */
 
 // pu_in namespace
@@ -88,7 +93,7 @@ pu_in.core.determineTarget = function(elt) {
  */
 pu_in.core.handleCallback = function(elt) {
 
-  var callback = elt.attr("pu:callback") || "";
+  var callback = elt.data("pu_callback") || "";
 
   if (callback) {
     try {
@@ -113,7 +118,7 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   defaults = defaults || {};
 
   var contentType = pu_in.core.detectContentType(xhr);
-  var behavior = elt.attr("pu:target-behavior") || defaults.target-behavior;
+  var behavior = elt.data("pu_targetbehavior") || defaults.pu_targetbehavior;
   var html = data;
 
   if (contentType.indexOf("json") > -1) {
@@ -151,9 +156,9 @@ $(document).ready(function() {
         var form = $(e.target);
         var tgt = pu_in.core.determineTarget(form);
         
-        if (form.attr("pu:pre-submit")) {
+        if (form.data("pu_presubmit")) {
           try {
-            check = eval(form.attr("pu:pre-submit"));
+            check = eval(form.data("pu_presubmit"));
             if (!check(form)) {
               pg.showMessage("Kon data niet versturen", "error");
               return false;
@@ -185,8 +190,8 @@ $(document).ready(function() {
         var tgt = pu_in.core.determineTarget(link) || link;
         
         $.ajax(link.attr("href"),
-               {type: link.attr("pu:action-method") || "GET",
-                data: link.attr("pu:action-data") || "",
+               {type: link.data("pu_actionmethod") || "GET",
+                data: link.data("pu_actiondata") || "",
                 success: function(data, status, xhr) {
                    pu_in.core.handleResult(link, tgt, data, status, xhr);
                  }
@@ -204,8 +209,8 @@ $(document).ready(function() {
         }
       
         $.ajax(link.attr("href"), 
-               {type: link.attr("pu:action-method") || "GET",
-                data: link.attr("pu:action-data") || "",
+               {type: link.data("pu_actionmethod") || "GET",
+                data: link.data("pu_actiondata") || "",
                    success: function(data, status, xhr) {
 
                      var contentType = pu_in.core.detectContentType(xhr);
@@ -221,8 +226,11 @@ $(document).ready(function() {
         e.preventDefault();
       });
 
-
-    $(document).on("submit", "#MyModal form", function(e) {
+    // hide modal on submit. If other handlers need to keep the modal,
+    // make sure that the event is handled earlier in the 'bubble-up'
+    // and stop propagation is called.
+    //
+    $(document).on("submit", "#MyModal", function(e) {
 
         $("#MyModal").modal('hide');
       });
