@@ -46,6 +46,44 @@ if (pu_in == undefined) {
 pu_in['core'] = {};
 
 
+/**
+ * Show message. Assumes a div with id 'status' in html.
+ * @param mesg message
+ * @param type type of alert. One of: success, error, info
+ */
+pu_in.core.showMessage = function(mesg, type) {
+
+  $("#status").html('<div class="alert alert-' + type + '"><a class="close" data-dismiss="alert">×</a>' + mesg + '</div>');
+  
+  setTimeout('$("#status .alert").hide("slow")', 5000);
+};
+
+
+/**
+ * Show confirm window. If ok is clicked, call callback.
+ * @param question Text to show
+ * @param callback Callback to call when all is well...
+ * @param callbackArgs List of callback arguments. These will be
+ * provided to the callback function as arguments.
+ */
+pu_in.core.confirmMessage = function(question, callback, callbackArgs, okLabel, 
+                                     cancelLabel) {
+  
+  $("#MyModal .modal-body").html(
+                                 question + 
+                                 '<div class="btn-group"><a href="#" id="confirm_ok" class="btn btn-primary">' + (okLabel || "OK" ) + '</a>' +
+                                 '<a href="#" class="btn" data-dismiss="modal">' + (cancelLabel || "Annuleren") + '</a></div>'
+                                 );
+  
+  $("#MyModal").find('#confirm_ok').click(function(event) {
+      callback.apply({}, callbackArgs);
+      $("#MyModal").modal('hide');
+    });
+  
+  $("#MyModal").modal('show');     
+};
+
+
 pu_in.core.formatErrors = function(dict) {
 
   var errors = "<dl>";
@@ -186,9 +224,9 @@ $(document).ready(function() {
         if (!link.hasClass("action-inline")) {
           link = link.parents(".action-inline");
         }
-        
+
         var tgt = pu_in.core.determineTarget(link) || link;
-        
+
         $.ajax(link.attr("href"),
                {type: link.data("pu_actionmethod") || "GET",
                 data: link.data("pu_actiondata") || "",
