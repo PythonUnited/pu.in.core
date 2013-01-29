@@ -164,7 +164,7 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
     html = data['html'];
 
     if (data['status'] != 0) {
-      pg.showMessage(data['errors'], "error");
+      pu_in.core.showMessage(data['errors'], "error");
       return;
     }
   } else {
@@ -198,11 +198,11 @@ $(document).ready(function() {
           try {
             check = eval(form.data("pu_presubmit"));
             if (!check(form)) {
-              pg.showMessage("Kon data niet versturen", "error");
+              pu_in.core.showMessage("Kon data niet versturen", "error");
               return false;
             }
           } catch (e) {
-            pg.showMessage("Kon data niet versturen: " + e, "error");
+            pu_in.core.showMessage("Kon data niet versturen: " + e, "error");
           }
         }
 
