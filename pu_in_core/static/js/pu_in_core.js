@@ -28,8 +28,10 @@
  * is regarded as a stringified number of parameter/value pairs to be sent as
  * data with the request.
  *
- * For both handlers: if pu_callback is provided as data attribute, this JS
- * function will be called on success.
+ * For both handlers: if pu_callback is provided as data attribute,
+ * this JS function will be called on success. Any arguments to the
+ * call may be provideds by adding after a ':', for example
+ * data-pu_callback="callMe:1"
  *
  * modal-action-inline
  * -------------------
@@ -134,9 +136,17 @@ pu_in.core.handleCallback = function(elt) {
   var callback = elt.data("pu_callback") || "";
 
   if (callback) {
+
+    var callback_parts = callback.split(":");
+    var callback_args = [];
+
+    if (callback_parts.length > 1) {
+      callback_args = callback_parts[1].split(",");
+    }
+
     try {
-      var callback = eval(callback);
-      callback();
+      var callback = eval(callback_parts[0]);
+      callback.apply(null, callback_args);
     } catch (e) {
       // handle errors please!
     }
