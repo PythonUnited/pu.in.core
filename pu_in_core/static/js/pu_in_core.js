@@ -47,6 +47,9 @@ if (pu_in == undefined) {
 // Our own namespace
 pu_in['core'] = {};
 
+// Set to your modal and alert id if need be.
+pu_in['settings'] = {modal_id: "#MyModal", alert_id: "#alerts"};
+
 
 /**
  * Show message. Assumes a div with id 'status' in html.
@@ -55,10 +58,19 @@ pu_in['core'] = {};
  */
 pu_in.core.showMessage = function(mesg, type) {
 
-  $("#status").html('<div class="alert alert-' + type + '"><a class="close" data-dismiss="alert">×</a>' + mesg + '</div>');
-  
-  setTimeout('$("#status .alert").hide("slow")', 5000);
+  $(pu_in.settings.alert_id).addClass(type);
+  $(pu_in.settings.alert_id).find(".alert-body").eq(0).html(mesg);
+  $(pu_in.settings.alert_id).show();
+
+  setTimeout('pu_in.core.hideMessage()', 5000);
 };
+
+
+pu_in.core.hideMessage = function() {
+  $(pu_in.settings.alert_id).hide("slow");
+  $(pu_in.settings.alert_id).attr("class", "alert");  
+  $(pu_in.settings.alert_id).find(".alert-body").html("");
+}
 
 
 /**
@@ -71,18 +83,18 @@ pu_in.core.showMessage = function(mesg, type) {
 pu_in.core.confirmMessage = function(question, callback, callbackArgs, okLabel, 
                                      cancelLabel) {
   
-  $("#MyModal .modal-body").html(
+  $(pu_in.settings.modal_id + " .modal-body").html(
                                  question + 
                                  '<div class="btn-group"><a href="#" id="confirm_ok" class="btn btn-primary">' + (okLabel || "OK" ) + '</a>' +
                                  '<a href="#" class="btn" data-dismiss="modal">' + (cancelLabel || "Annuleren") + '</a></div>'
                                  );
   
-  $("#MyModal").find('#confirm_ok').click(function(event) {
+  $(pu_in.settings.modal_id).find('#confirm_ok').click(function(event) {
       callback.apply({}, callbackArgs);
-      $("#MyModal").modal('hide');
+      $(pu_in.settings.modal_id).modal('hide');
     });
   
-  $("#MyModal").modal('show');     
+  $(pu_in.settings.modal_id).modal('show');     
 };
 
 
@@ -192,7 +204,17 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
       tgt.html(html);
     }
   }
+
+  if (data['message']) {
+    console.log(data);
+    console.log(data['message']);
+    pu_in.core.showMessage(data['message'], "info");
+  }  
   
+  if (elt.data("pu_protect")) {
+    elt.removeClass("disabled");
+  }
+
   pu_in.core.handleCallback(elt);
 };
 
@@ -235,17 +257,24 @@ $(document).ready(function() {
           link = link.parents(".action-inline");
         }
 
-        var tgt = pu_in.core.determineTarget(link) || link;
+        if (!link.hasClass("disabled")) {
 
-        $.ajax(link.attr("href"),
-               {type: link.data("pu_actionmethod") || "GET",
-                data: link.data("pu_actiondata") || "",
-                success: function(data, status, xhr) {
-                   pu_in.core.handleResult(link, tgt, data, status, xhr, 
-                                           {'pu_targetbehavior': 'replace'});
-                 }
-               });
-        
+          if (link.data("pu_protect")) {
+            link.addClass("disabled");
+          }
+
+          var tgt = pu_in.core.determineTarget(link) || link;
+
+          $.ajax(link.attr("href"),
+                 {type: link.data("pu_actionmethod") || "GET",
+                     data: link.data("pu_actiondata") || "",
+                     success: function(data, status, xhr) {
+                     pu_in.core.handleResult(link, tgt, data, status, xhr, 
+                                             {'pu_targetbehavior': 'replace'});
+                   }
+                 });
+        }
+
         e.preventDefault();
       });
 
@@ -265,11 +294,11 @@ $(document).ready(function() {
                      var contentType = pu_in.core.detectContentType(xhr);
 
                      if (contentType.indexOf("json") > -1) {          
-                       $("#MyModal .modal-body").html(data['html']);
+                       $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
                      } else {
-                       $("#MyModal .modal-body").html(data);
+                       $(pu_in.settings.modal_id + " .modal-body").html(data);
                      }
-                     $("#MyModal").modal();
+                     $(pu_in.settings.modal_id).modal();
                  }
                });
         e.preventDefault();
@@ -279,9 +308,9 @@ $(document).ready(function() {
     // make sure that the event is handled earlier in the 'bubble-up'
     // and stop propagation is called.
     //
-    $(document).on("submit", "#MyModal", function(e) {
+    $(document).on("submit", pu_in.settings.modal_id, function(e) {
 
-        $("#MyModal").modal('hide');
+        $(pu_in.settings.modal_id).modal('hide');
       });
   });
   
