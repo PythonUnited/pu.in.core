@@ -30,13 +30,33 @@
  *
  * For both handlers: if pu_callback is provided as data attribute,
  * this JS function will be called on success. Any arguments to the
- * call may be provideds by adding after a ':', for example
- * data-pu_callback="callMe:1"
+ * call may be provided by adding after a ':', for example
+ * data-pu_callback="callMe:1". The originating element will always be
+ * the first argument of the callback.
  *
  * modal-action-inline
  * -------------------
  * Handle action and show result in modal box.
  */
+
+/* Some handy patches on JS */
+
+// Add startsWith as method on String.
+//
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function(str) {
+        return this.slice(0, str.length) == str;
+    };
+}
+
+
+// Add endsWith as method on String.
+//
+if (typeof String.prototype.endsWith != 'function') {
+    String.prototype.endsWith = function(str) {
+        return this.slice(-str.length) == str;
+    };
+}
 
 // pu_in namespace
 if (pu_in == undefined) {
@@ -58,15 +78,19 @@ pu_in['settings'] = {modal_id: "#MyModal", alert_id: "#alerts"};
  */
 pu_in.core.showMessage = function(mesg, type) {
 
-  $(pu_in.settings.alert_id).addClass(type);
+  $(pu_in.settings.alert_id).addClass("alert-" + type);
   $(pu_in.settings.alert_id).find(".alert-body").eq(0).html(mesg);
-  $(pu_in.settings.alert_id).show();
+  $(pu_in.settings.alert_id).show("slow");
 
-  setTimeout('pu_in.core.hideMessage()', 5000);
+  setTimeout('pu_in.core.hideMessage()', 4000);
 };
 
 
+/**
+ * Hide alert box.
+ */
 pu_in.core.hideMessage = function() {
+
   $(pu_in.settings.alert_id).hide("slow");
   $(pu_in.settings.alert_id).attr("class", "alert");  
   $(pu_in.settings.alert_id).find(".alert-body").html("");
@@ -150,7 +174,7 @@ pu_in.core.handleCallback = function(elt) {
   if (callback) {
 
     var callback_parts = callback.split(":");
-    var callback_args = [];
+    var callback_args = [elt];
 
     if (callback_parts.length > 1) {
       callback_args = callback_parts[1].split(",");
@@ -206,9 +230,8 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   }
 
   if (data['message']) {
-    console.log(data);
-    console.log(data['message']);
-    pu_in.core.showMessage(data['message'], "info");
+
+    pu_in.core.showMessage(data['message'], "success");
   }  
   
   if (elt.data("pu_protect")) {
