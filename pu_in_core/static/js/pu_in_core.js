@@ -244,6 +244,41 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
 $(document).ready(function() {
 
+    $(document).on("submit", ".modal-submit-inline", function(e) {
+
+        var form = $(e.target);
+        var tgt = pu_in.core.determineTarget(form);
+        
+        if (form.data("pu_presubmit")) {
+          try {
+            check = eval(form.data("pu_presubmit"));
+            if (!check(form)) {
+              pu_in.core.showMessage("Kon data niet versturen", "error");
+              return false;
+            }
+          } catch (e) {
+            pu_in.core.showMessage("Kon data niet versturen: " + e, "error");
+          }
+        }
+
+        $.ajax(form.attr("action"),
+               {type: form.attr("method") || "POST",
+                data: form.serialize(),
+                success: function(data, status, xhr) {
+
+                   if (data['status'] != 0) {
+                     $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
+                   } else {                     
+                     pu_in.core.handleResult(form, tgt, data, status, xhr);
+                     $(pu_in.settings.modal_id).modal('hide');
+                   }
+                 }
+               });
+    
+        e.stopPropagation();    
+        e.preventDefault();
+      });
+
     $(document).on("submit", ".submit-inline", function(e) {
 
         var form = $(e.target);
@@ -265,10 +300,26 @@ $(document).ready(function() {
                {type: form.attr("method") || "POST",
                 data: form.serialize(),
                 success: function(data, status, xhr) {
-                   pu_in.core.handleResult(form, tgt, data, status, xhr);
+
+                   var contentType = pu_in.core.detectContentType(xhr);
+                   
+                   status = 0;
+                   errors = "";
+
+                   if (contentType.indexOf("json") > -1) {
+                     status = data['status'];
+                     errors = data['errors'];
+                   }
+                   
+                   if (status != 0) {
+                     pu_in.core.showMessage(errors, "error");
+                   } else {                     
+                     pu_in.core.handleResult(form, tgt, data, status, xhr);
+                   }
                  }
                });
-        
+    
+        e.stopPropagation();    
         e.preventDefault();
       });
 

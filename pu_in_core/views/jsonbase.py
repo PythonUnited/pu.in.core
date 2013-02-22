@@ -1,6 +1,7 @@
 from django import http
 from django.utils import simplejson as json
 from django.template.loader import render_to_string
+from django.views.generic.edit import FormMixin
 
 
 class JSONResponseMixin(object):
@@ -40,15 +41,14 @@ class JSONResponseMixin(object):
             **response_kwargs)
 
 
-class JSONFormMixin(JSONResponseMixin):
+class JSONFormMixin(JSONResponseMixin, FormMixin):
 
     success_template_name = None
 
     def form_valid(self, form):
 
-        self.object = form.save()
         return self.render_to_response(
-            self.get_context_data(form=form, object=self.object),
+            self.get_context_data(form=form),
             template=self.success_template_name)
 
     def get_context_data(self, **kwargs):
@@ -58,3 +58,13 @@ class JSONFormMixin(JSONResponseMixin):
         context['action'] = self.request.path
 
         return context
+
+
+class JSONModelFormMixin(JSONFormMixin):
+
+    def form_valid(self, form):
+
+        self.object = form.save()
+        return self.render_to_response(
+            self.get_context_data(form=form, object=self.object),
+            template=self.success_template_name)
