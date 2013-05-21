@@ -134,11 +134,38 @@ pu_in.core.formatErrors = function(dict) {
 };
 
 
+/**
+ * Detect content type from xhr.
+ */
 pu_in.core.detectContentType = function(xhr) {
 
-  var ct = xhr.getResponseHeader("content-type") || "unknown";
+  return xhr.getResponseHeader("content-type") || "unknown";
+};
 
-  return ct;
+
+/**
+ * Return result as data dict, so as to get a consisten way of
+ * handling JSON and text/html. In case of JSON, assume data already
+ * has keys for 'status' and 'html'.
+ */
+pu_in.core.requestAsDataDict = function(data, status, xhr) {
+
+  var contentType = pu_in.core.detectContentType(xhr);
+  
+  if (contentType.indexOf("json") == -1) {
+
+    if (xhr.status == 200) {
+      status = 0;
+    } else if (xhr.status >= 300 && xhr.status < 400) {
+      status = 0;
+    } else {
+      status = -1;
+    }
+
+    data = {html: data, status: status};
+  }
+
+  return data;
 };
 
 
@@ -201,31 +228,24 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
   defaults = defaults || {};
 
-  var contentType = pu_in.core.detectContentType(xhr);
+  data = pu_in.core.requestAsDataDict(data, status, xhr);
+
   var behavior = elt.data("pu_targetbehavior") || defaults.pu_targetbehavior;
-  var html = data;
 
-  if (contentType.indexOf("json") > -1) {
-
-    html = data['html'];
-
-    if (data['status'] != 0) {
-      pu_in.core.showMessage(data['errors'], "error");
-      return;
-    }
-  } else {
-    html = data;
+  if (data['status'] != 0) {
+    pu_in.core.showMessage(data['errors'], "error");
+    return;
   }
 
   if (tgt) {
     if (behavior == "replace") {
-      tgt.replaceWith(html);
+      tgt.replaceWith(data['html']);
     } else if (behavior == "append") {
-      tgt.append(html);
+      tgt.append(data['html']);
     } else if (behavior == "prepend") {
-      tgt.prepend(html);
+      tgt.prepend(data['html']);
     } else {
-      tgt.html(html);
+      tgt.html(data['html']);
     }
   }
 
@@ -266,6 +286,8 @@ $(document).ready(function() {
                 data: form.serialize(),
                 success: function(data, status, xhr) {
 
+
+                   data = pu_in.core.requestAsDataDict(data, status, xhr);
                    if (data['status'] != 0) {
                      $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
                    } else {                     
@@ -283,7 +305,7 @@ $(document).ready(function() {
 
         var form = $(e.target);
         var tgt = pu_in.core.determineTarget(form);
-        
+
         if (form.data("pu_presubmit")) {
           try {
             check = eval(form.data("pu_presubmit"));
@@ -301,18 +323,13 @@ $(document).ready(function() {
                 data: form.serialize(),
                 success: function(data, status, xhr) {
 
-                   var contentType = pu_in.core.detectContentType(xhr);
-                   
-                   status = 0;
-                   errors = "";
+                   dict = pu_in.core.requestAsDataDict(data, status, xhr);
 
-                   if (contentType.indexOf("json") > -1) {
-                     status = data['status'];
-                     errors = data['errors'];
-                   }
-                   
-                   if (status != 0) {
-                     pu_in.core.showMessage(errors, "error");
+                   if (dict['status'] != 0) {
+                     // assume that the form is sent back with errors
+                     errtgt = $(form.data("pu_errortarget")) || form
+                     errtgt.replaceWith(dict['html']);
+                     //pu_in.core.showMessage(data['errors'], "error");
                    } else {                     
                      pu_in.core.handleResult(form, tgt, data, status, xhr);
                    }
@@ -365,14 +382,9 @@ $(document).ready(function() {
                 data: link.data("pu_actiondata") || "",
                    success: function(data, status, xhr) {
 
-                     var contentType = pu_in.core.detectContentType(xhr);
-
-                     if (contentType.indexOf("json") > -1) {          
-                       $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
-                     } else {
-                       $(pu_in.settings.modal_id + " .modal-body").html(data);
-                     }
-                     $(pu_in.settings.modal_id).modal();
+                   data = pu_in.core.requestAsDataDict(data, status, xhr);
+                   $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
+                   $(pu_in.settings.modal_id).modal();
                  }
                });
         e.preventDefault();
