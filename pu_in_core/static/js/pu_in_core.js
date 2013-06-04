@@ -204,7 +204,7 @@ pu_in.core.handleCallback = function(elt) {
     var callback_args = [elt];
 
     if (callback_parts.length > 1) {
-      callback_args = callback_parts[1].split(",");
+      callback_args = callback_args.concat(callback_parts[1].split(","));
     }
 
     try {
