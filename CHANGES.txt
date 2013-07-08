@@ -1,3 +1,9 @@
+1.0.2
+=====
+* Initial stable release
+* Better callback handling
+* more documentation
+
 1.0.1a
 ======
 * Added String.startsWith and String.endsWith to JS String class, for
