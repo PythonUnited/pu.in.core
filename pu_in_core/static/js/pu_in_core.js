@@ -358,12 +358,20 @@ $(document).ready(function() {
 
           var tgt = pu_in.core.determineTarget(link) || link;
 
+          var behavior = link.data("pu_targetbehavior");
+
+          if (behavior == 'empty_before_replace'){
+              tgt.children().remove();
+              tgt.addClass("loading");
+          }
+
           $.ajax(link.attr("href"),
                  {type: link.data("pu_actionmethod") || "GET",
                      data: link.data("pu_actiondata") || "",
                      success: function(data, status, xhr) {
-                     pu_in.core.handleResult(link, tgt, data, status, xhr, 
+                     pu_in.core.handleResult(link, tgt, data, status, xhr,
                                              {'pu_targetbehavior': 'replace'});
+                     tgt.removeClass("loading");
                    }
                  });
         }
