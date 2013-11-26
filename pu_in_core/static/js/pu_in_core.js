@@ -237,6 +237,8 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
     return;
   }
 
+  $(document).trigger("pu_in_submit_inline_response", [data]);
+
   if (tgt) {
     if (behavior == "replace") {
       tgt.replaceWith(data['html']);
