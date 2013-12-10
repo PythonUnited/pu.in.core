@@ -261,6 +261,8 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   }
 
   pu_in.core.handleCallback(elt);
+
+  $(document).trigger("pu_in_submit_inline_ready", [data]);
 };
 
 
