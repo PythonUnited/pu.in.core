@@ -288,8 +288,8 @@ $(document).ready(function() {
         $.ajax(form.attr("action"),
                {type: form.attr("method") || "POST",
                 data: form.serialize(),
+                   dataType: "json",
                 success: function(data, status, xhr) {
-
 
                    data = pu_in.core.requestAsDataDict(data, status, xhr);
                    if (data['status'] != 0) {
@@ -325,6 +325,7 @@ $(document).ready(function() {
         $.ajax(form.attr("action"),
                {type: form.attr("method") || "POST",
                 data: form.serialize(),
+                   dataType: "json",
                 success: function(data, status, xhr) {
 
                    dict = pu_in.core.requestAsDataDict(data, status, xhr);
@@ -370,6 +371,7 @@ $(document).ready(function() {
           $.ajax(link.attr("href"),
                  {type: link.data("pu_actionmethod") || "GET",
                      data: link.data("pu_actiondata") || "",
+                     dataType: "json",
                      success: function(data, status, xhr) {
                      pu_in.core.handleResult(link, tgt, data, status, xhr,
                                              {'pu_targetbehavior': 'replace'});
@@ -392,6 +394,7 @@ $(document).ready(function() {
         $.ajax(link.attr("href"), 
                {type: link.data("pu_actionmethod") || "GET",
                 data: link.data("pu_actiondata") || "",
+                     dataType: "json",
                    success: function(data, status, xhr) {
 
                    data = pu_in.core.requestAsDataDict(data, status, xhr);
