@@ -413,5 +413,7 @@ $(document).ready(function() {
 
         $(pu_in.settings.modal_id).modal('hide');
       });
+
+    $(document).trigger("pu_in_core_ready");
   });
   
