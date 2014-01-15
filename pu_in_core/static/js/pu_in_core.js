@@ -151,7 +151,7 @@ pu_in.core.detectContentType = function(xhr) {
 pu_in.core.requestAsDataDict = function(data, status, xhr) {
 
   var contentType = pu_in.core.detectContentType(xhr);
-  
+
   if (contentType.indexOf("json") == -1) {
 
     if (xhr.status == 200) {
@@ -392,7 +392,7 @@ $(document).ready(function() {
         $.ajax(link.attr("href"), 
                {type: link.data("pu_actionmethod") || "GET",
                 data: link.data("pu_actiondata") || "",
-                   dataType: link.data("pu_datatype") || "html",
+                   dataType: link.data("pu_datatype") || "text",
                    success: function(data, status, xhr) {
 
                    data = pu_in.core.requestAsDataDict(data, status, xhr);
