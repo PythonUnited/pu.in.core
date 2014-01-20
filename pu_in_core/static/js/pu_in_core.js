@@ -154,18 +154,26 @@ pu_in.core.requestAsDataDict = function(data, status, xhr) {
 
   if (contentType.indexOf("json") == -1) {
 
-    if (xhr.status == 200) {
-      status = 0;
-    } else if (xhr.status >= 300 && xhr.status < 400) {
-      status = 0;
-    } else {
-      status = -1;
-    }
-
-    data = {html: data, status: status};
+    data = {html: data};
   }
 
   return data;
+};
+
+
+/**
+ * Check status of request.
+ * @param xhr request header
+ */
+pu_in.core.checkStatus = function(xhr) {
+
+  var status = 0;
+
+  if (xhr.status != 200 && (xhr.status < 300 || xhr.status >= 400)) {
+    status = -1;
+  }
+
+  return status;
 };
 
 
@@ -232,7 +240,7 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
   var behavior = elt.data("pu_targetbehavior") || defaults.pu_targetbehavior;
 
-  if (data['status'] != 0) {
+  if (pu_in.core.checkStatus(xhr) < 0) {
     pu_in.core.showMessage(data['errors'], "error");
     return;
   }
@@ -291,7 +299,7 @@ $(document).ready(function() {
                 success: function(data, status, xhr) {
 
                    data = pu_in.core.requestAsDataDict(data, status, xhr);
-                   if (data['status'] != 0) {
+                   if (pu_in.core.checkStatus(xhr) < 0) {
                      $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
                    } else {                     
                      pu_in.core.handleResult(form, tgt, data, status, xhr);
@@ -328,7 +336,7 @@ $(document).ready(function() {
 
                    dict = pu_in.core.requestAsDataDict(data, status, xhr);
 
-                   if (dict['status'] != 0) {
+                   if (pu_in.core.checkStatus(xhr) < 0) {
                      // assume that the form is sent back with errors
                      errtgt = $(form.data("pu_errortarget")) || form
                      errtgt.replaceWith(dict['html']);
