@@ -382,6 +382,7 @@ $(document).ready(function() {
                      pu_in.core.handleResult(link, tgt, data, status, xhr,
                                              {'pu_targetbehavior': 'replace'});
                      tgt.removeClass("loading");
+                     tgt.show();
                    }
                  });
         }
