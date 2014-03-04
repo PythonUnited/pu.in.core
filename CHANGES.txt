@@ -1,3 +1,7 @@
+1.0.3
+=====
+ * More consistent handling of status
+
 1.0.2
 =====
 * Initial stable release
