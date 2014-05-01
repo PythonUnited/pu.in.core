@@ -1,8 +1,7 @@
 import logging
 from django.views.generic.detail import SingleObjectMixin
-from django.template.loader import render_to_string
 from jsonbase import JSONResponseMixin
-from pgcontent.utils import get_object_by_ctype_id
+from djinn_contenttypes.utils import get_object_by_ctype_id
 
 
 log = logging.getLogger("pu.in.core")
@@ -14,7 +13,7 @@ class InlineActionMixin(JSONResponseMixin):
     """
 
     handle_on_get = False
-    handle_on_post = True    
+    handle_on_post = True
 
     def handle_request(self, *args, **kwargs):
 
@@ -31,7 +30,7 @@ class InlineActionMixin(JSONResponseMixin):
             kwargs['status'] = 0
             kwargs['errors'] = ""
 
-        return self.render_to_response(self.get_context_data(**kwargs));
+        return self.render_to_response(self.get_context_data(**kwargs))
 
     def post(self, request, *args, **kwargs):
 
@@ -41,7 +40,7 @@ class InlineActionMixin(JSONResponseMixin):
             kwargs['status'] = 0
             kwargs['errors'] = ""
 
-        return self.render_to_response(self.get_context_data(**kwargs));
+        return self.render_to_response(self.get_context_data(**kwargs))
 
 
 class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
@@ -52,7 +51,7 @@ class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
 
         """ Base implementation that just returns the view's kwargs """
 
-        context = super(InlineObjectActionMixin, 
+        context = super(InlineObjectActionMixin,
                         self).get_context_data(**kwargs)
 
         context['object'] = self.object
@@ -61,15 +60,15 @@ class InlineObjectActionMixin(InlineActionMixin, SingleObjectMixin):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        
-        return super(InlineObjectActionMixin, self).get(request, *args, 
+
+        return super(InlineObjectActionMixin, self).get(request, *args,
                                                         **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        
-        return super(InlineObjectActionMixin, self).post(request, *args, 
-                                                        **kwargs)
+
+        return super(InlineObjectActionMixin, self).post(request, *args,
+                                                         **kwargs)
 
 
 class InlineCTObjectActionMixin(InlineObjectActionMixin):
@@ -77,4 +76,3 @@ class InlineCTObjectActionMixin(InlineObjectActionMixin):
     def get_object(self):
 
         return get_object_by_ctype_id(self.kwargs['ctype'], self.kwargs['id'])
-    
