@@ -1,3 +1,7 @@
+1.0.4
+=====
+* Style fixes
+
 1.0.3
 =====
  * More consistent handling of status

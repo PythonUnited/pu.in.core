@@ -65,10 +65,10 @@ if (pu_in == undefined) {
 
 
 // Our own namespace
-pu_in['core'] = {};
+pu_in.core = {};
 
 // Set to your modal and alert id if need be.
-pu_in['settings'] = {modal_id: "#MyModal", alert_id: "#alerts"};
+pu_in.settings = {modal_id: "#MyModal", alert_id: "#alerts"};
 
 
 /**
@@ -82,7 +82,7 @@ pu_in.core.showMessage = function(mesg, type) {
   $(pu_in.settings.alert_id).find(".alert-body").eq(0).html(mesg);
   $(pu_in.settings.alert_id).show("slow");
 
-  setTimeout('pu_in.core.hideMessage()', 4000);
+  setTimeout(pu_in.core.hideMessage, 4000);
 };
 
 
@@ -94,7 +94,7 @@ pu_in.core.hideMessage = function() {
   $(pu_in.settings.alert_id).hide("slow");
   $(pu_in.settings.alert_id).attr("class", "alert");  
   $(pu_in.settings.alert_id).find(".alert-body").html("");
-}
+};
 
 
 /**
@@ -126,7 +126,7 @@ pu_in.core.formatErrors = function(dict) {
 
   var errors = "<dl>";
 
-  for (key in dict) {
+  for (var key in dict) {
     errors += "<dt>" + key + "</dt><dd>" + dict[key] + "</dd>";
   }
 
@@ -241,7 +241,7 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
   var behavior = elt.data("pu_targetbehavior") || defaults.pu_targetbehavior;
 
   if (pu_in.core.checkStatus(xhr) < 0) {
-    pu_in.core.showMessage(data['errors'], "error");
+    pu_in.core.showMessage(data.errors, "error");
     return;
   }
 
@@ -249,19 +249,19 @@ pu_in.core.handleResult = function(elt, tgt, data, status, xhr, defaults) {
 
   if (tgt) {
     if (behavior == "replace") {
-      tgt.replaceWith(data['html']);
+      tgt.replaceWith(data.html);
     } else if (behavior == "append") {
-      tgt.append(data['html']);
+      tgt.append(data.html);
     } else if (behavior == "prepend") {
-      tgt.prepend(data['html']);
+      tgt.prepend(data.html);
     } else {
-      tgt.html(data['html']);
+      tgt.html(data.html);
     }
   }
 
-  if (data['message']) {
+  if (data.message) {
 
-    pu_in.core.showMessage(data['message'], "success");
+    pu_in.core.showMessage(data.message, "success");
   }  
   
   if (elt.data("pu_protect")) {
@@ -300,7 +300,7 @@ $(document).ready(function() {
 
                    data = pu_in.core.requestAsDataDict(data, status, xhr);
                    if (pu_in.core.checkStatus(xhr) < 0) {
-                     $(pu_in.settings.modal_id + " .modal-body").html(data['html']);
+                     $(pu_in.settings.modal_id + " .modal-body").html(data.html);
                    } else {                     
                      pu_in.core.handleResult(form, tgt, data, status, xhr);
                      $(pu_in.settings.modal_id).modal('hide');
@@ -353,11 +353,7 @@ $(document).ready(function() {
 
     $(document).on("click", ".action-inline", function(e) {
         
-        var link = $(e.target);
-
-        if (!link.hasClass("action-inline")) {
-          link = link.parents(".action-inline");
-        }
+        var link = $(e.currentTarget);
 
         if (!link.hasClass("disabled")) {
 

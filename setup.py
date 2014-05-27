@@ -11,7 +11,7 @@ requires = [
     ]
 
 setup(name='pu_in_core',
-      version="1.0.3",
+      version="1.0.4",
       description='PythonUnited Intranet Core',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
